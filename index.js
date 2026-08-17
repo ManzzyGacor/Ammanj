@@ -3,7 +3,7 @@ const mongoose = require('mongoose');
 const session = require('express-session');
 const bcrypt = require('bcryptjs');
 const fetch = require('node-fetch');
-const fs = require('fs');
+const ejs = require('ejs');
 
 const app = express();
 
@@ -11,26 +11,34 @@ const app = express();
 // 1. KONFIGURASI SISTEM & API
 // ==========================================
 const MONGO_URI = "mongodb+srv://gmailbaru310_db_user:O59GP4Kb07CFJblr@cluster0.noevqh7.mongodb.net/?appName=Cluster0";
-const PAKASIR_SLUG = "kingjpm"; // Ganti dengan slug Pakasir Anda
-const PAKASIR_API_KEY = "Xs25AnZO2UW08aIapO4l3gyxTjJCCFKB"; // Ganti dengan API Key Pakasir Anda
+const PAKASIR_SLUG = "kingjpm"; 
+const PAKASIR_API_KEY = "Xs25AnZO2UW08aIapO4l3gyxTjJCCFKB"; 
 
 const AM_API_URL = "https://restapidhan.vercel.app";
 const AM_API_KEY = "freeapikeydhan26";
 
 // ==========================================
-// 2. DATABASE MONGODB (SCHEMA)
+// 2. DATABASE MONGODB (SERVERLESS OPTIMIZED)
 // ==========================================
-mongoose.connect(MONGO_URI, { useNewUrlParser: true, useUnifiedTopology: true })
-    .then(() => console.log("✅ Terhubung ke MongoDB Atlas"))
-    .catch(err => console.error("❌ MongoDB Error:", err));
+let isConnected = false;
+const connectDB = async () => {
+    if (isConnected) return;
+    try {
+        await mongoose.connect(MONGO_URI);
+        isConnected = true;
+        console.log("✅ Terhubung ke MongoDB Atlas");
+    } catch (err) {
+        console.error("❌ MongoDB Error:", err);
+    }
+};
 
 const userSchema = new mongoose.Schema({
     username: { type: String, unique: true, required: true },
     password: { type: String, required: true },
     name: { type: String, required: true },
-    role: { type: String, default: 'user' }, // user, premium, reseller, admin, raja
+    role: { type: String, default: 'user' },
     lastAmUse: { type: String, default: '' },
-    totalSpent: { type: Number, default: 0 } // Untuk fitur Leaderboard
+    totalSpent: { type: Number, default: 0 } 
 });
 const User = mongoose.model('User', userSchema);
 
@@ -49,21 +57,23 @@ const Transaction = mongoose.model('Transaction', trxSchema);
 // ==========================================
 app.use(express.urlencoded({ extended: true }));
 app.use(express.json());
-app.set('view engine', 'ejs');
 app.use(session({
     secret: 'ManzzyIDSecretKey2026',
     resave: false,
     saveUninitialized: false,
     cookie: { maxAge: 24 * 60 * 60 * 1000 }
 }));
+// Middleware untuk memastikan koneksi DB aktif di setiap request Vercel
+app.use(async (req, res, next) => {
+    await connectDB();
+    next();
+});
 
 // ==========================================
-// 4. GENERATOR VIEWS (UNTUK VERCEL TANPA FOLDER)
+// 4. TEMPLATE VIEWS (STRING MEMORY - NO DISK WRITE)
 // ==========================================
-if (!fs.existsSync('./views')) fs.mkdirSync('./views');
 
-// -- VIEW: LANDING PAGE --
-fs.writeFileSync('./views/index.ejs', `
+const indexTemplate = `
 <!DOCTYPE html>
 <html lang="id" class="dark">
 <head>
@@ -89,10 +99,9 @@ fs.writeFileSync('./views/index.ejs', `
         <a href="/login" class="bg-indigo-600 hover:bg-indigo-500 text-white font-bold px-8 py-4 rounded-2xl shadow-xl shadow-indigo-600/30">Mulai Sekarang</a>
     </header>
 </body></html>
-`);
+`;
 
-// -- VIEW: LOGIN & REGISTER --
-fs.writeFileSync('./views/login.ejs', `
+const loginTemplate = `
 <!DOCTYPE html><html class="dark"><head><script src="https://cdn.tailwindcss.com"></script></head>
 <body class="bg-slate-950 text-white flex items-center justify-center min-h-screen">
     <div class="bg-slate-900 p-8 rounded-3xl shadow-2xl w-full max-w-md border border-slate-800">
@@ -106,9 +115,9 @@ fs.writeFileSync('./views/login.ejs', `
         <p class="text-center mt-6 text-sm">Belum punya akun? <a href="/register" class="text-indigo-400">Daftar</a></p>
     </div>
 </body></html>
-`);
+`;
 
-fs.writeFileSync('./views/register.ejs', `
+const registerTemplate = `
 <!DOCTYPE html><html class="dark"><head><script src="https://cdn.tailwindcss.com"></script></head>
 <body class="bg-slate-950 text-white flex items-center justify-center min-h-screen">
     <div class="bg-slate-900 p-8 rounded-3xl shadow-2xl w-full max-w-md border border-slate-800">
@@ -123,10 +132,9 @@ fs.writeFileSync('./views/register.ejs', `
         <p class="text-center mt-6 text-sm">Sudah punya akun? <a href="/login" class="text-indigo-400">Masuk</a></p>
     </div>
 </body></html>
-`);
+`;
 
-// -- VIEW: DASHBOARD UTAMA (AM STEPPER, BELI ROLE, LEADERBOARD) --
-fs.writeFileSync('./views/dashboard.ejs', `
+const dashboardTemplate = `
 <!DOCTYPE html><html class="dark"><head>
     <title>Dashboard - Manzzy ID</title>
     <script src="https://cdn.tailwindcss.com"></script>
@@ -235,7 +243,6 @@ fs.writeFileSync('./views/dashboard.ejs', `
     </div>
 
     <script>
-        // Logika AM 1-2-3
         async function processAm(step) {
             const btn = document.getElementById('btn-am');
             const container = document.getElementById('am-form-container');
@@ -297,7 +304,6 @@ fs.writeFileSync('./views/dashboard.ejs', `
             }
         }
 
-        // Logika Beli Role Pakasir
         async function buyRole(role, amount) {
             Swal.fire({ title: 'Membuat Tagihan...', allowOutsideClick: false, didOpen: () => { Swal.showLoading() } });
             
@@ -311,18 +317,15 @@ fs.writeFileSync('./views/dashboard.ejs', `
 
             if(data.status) {
                 document.getElementById('qr-order-id').innerText = "Order ID: " + data.order_id;
-                // Generate QR image from the string using a free API
                 document.getElementById('qr-image-container').innerHTML = \`<img src="https://api.qrserver.com/v1/create-qr-code/?size=250x250&data=\${encodeURIComponent(data.qr)}" alt="QRIS">\`;
                 document.getElementById('qris-modal').classList.remove('hidden');
                 
-                // Mulai polling cek status
                 checkPaymentStatus(data.order_id);
             } else {
                 Swal.fire('Gagal', 'Sistem Pembayaran Sedang Gangguan', 'error');
             }
         }
 
-        // Auto reload jika webhook masuk (Opsional polling frontend)
         function checkPaymentStatus(order_id) {
             const check = setInterval(async () => {
                 const res = await fetch('/api/check-status?order_id=' + order_id);
@@ -332,14 +335,13 @@ fs.writeFileSync('./views/dashboard.ejs', `
                     Swal.fire('Pembayaran Berhasil!', 'Role otomatis diupdate. Halaman akan dimuat ulang.', 'success')
                     .then(() => window.location.reload());
                 }
-            }, 5000); // Cek tiap 5 detik
+            }, 5000); 
         }
     </script>
 </body></html>
-`);
+`;
 
-// -- VIEW: MANAGE MEMBERS --
-fs.writeFileSync('./views/manage.ejs', `
+const manageTemplate = `
 <!DOCTYPE html><html class="dark"><head><title>Kelola Member</title><script src="https://cdn.tailwindcss.com"></script></head>
 <body class="bg-slate-950 text-white min-h-screen p-10">
     <div class="max-w-2xl mx-auto">
@@ -376,18 +378,15 @@ fs.writeFileSync('./views/manage.ejs', `
         <% } %>
     </div>
 </body></html>
-`);
-
+`;
 
 // ==========================================
 // 5. ROUTING & LOGIKA BACKEND
 // ==========================================
 
-// Autentikasi Helper
 async function getValidatedUser(req) {
     if (!req.session.userId) return null;
     let u = await User.findById(req.session.userId);
-    // Aturan Raja: Username 'man' otomatis Raja
     if (u && u.username.toLowerCase() === 'man' && u.role !== 'raja') {
         u.role = 'raja'; await u.save();
     }
@@ -397,22 +396,26 @@ async function getValidatedUser(req) {
 // --- WEB ROUTES ---
 app.get('/', async (req, res) => {
     const user = await getValidatedUser(req);
-    res.render('index', { user });
+    res.send(ejs.render(indexTemplate, { user }));
 });
 
-app.get('/login', (req, res) => res.render('login', { error: null }));
+app.get('/login', (req, res) => res.send(ejs.render(loginTemplate, { error: null })));
 app.post('/login', async (req, res) => {
     const { username, password } = req.body;
     const user = await User.findOne({ username: username.toLowerCase() });
-    if (!user || !await bcrypt.compare(password, user.password)) return res.render('login', { error: 'Data salah!' });
+    if (!user || !await bcrypt.compare(password, user.password)) {
+        return res.send(ejs.render(loginTemplate, { error: 'Data salah!' }));
+    }
     req.session.userId = user._id;
     res.redirect('/dashboard');
 });
 
-app.get('/register', (req, res) => res.render('register', { error: null }));
+app.get('/register', (req, res) => res.send(ejs.render(registerTemplate, { error: null })));
 app.post('/register', async (req, res) => {
     const { name, username, password } = req.body;
-    if (await User.findOne({ username: username.toLowerCase() })) return res.render('register', { error: 'Username terpakai' });
+    if (await User.findOne({ username: username.toLowerCase() })) {
+        return res.send(ejs.render(registerTemplate, { error: 'Username terpakai' }));
+    }
     
     let initialRole = username.toLowerCase() === 'man' ? 'raja' : 'user';
     const hashed = await bcrypt.hash(password, 10);
@@ -430,7 +433,7 @@ app.get('/dashboard', async (req, res) => {
     const globalTrx = await Transaction.find({ status: 'completed' }).sort({ completed_at: -1 }).limit(10);
     const leaderboard = await User.find({ totalSpent: { $gt: 0 } }).sort({ totalSpent: -1 }).limit(5);
     
-    res.render('dashboard', { user, globalTrx, leaderboard });
+    res.send(ejs.render(dashboardTemplate, { user, globalTrx, leaderboard }));
 });
 
 app.get('/manage-members', async (req, res) => {
@@ -440,7 +443,7 @@ app.get('/manage-members', async (req, res) => {
     const searchQuery = req.query.search || '';
     let targetUser = searchQuery ? await User.findOne({ username: new RegExp('^' + searchQuery + '$', 'i') }) : null;
     
-    res.render('manage', { user, searchQuery, targetUser });
+    res.send(ejs.render(manageTemplate, { user, searchQuery, targetUser }));
 });
 
 app.post('/update-role', async (req, res) => {
@@ -448,7 +451,9 @@ app.post('/update-role', async (req, res) => {
     if (!admin || !['reseller', 'admin', 'raja'].includes(admin.role)) return res.redirect('/dashboard');
 
     const { targetUsername, newRole } = req.body;
-    if (targetUsername.toLowerCase() === 'man') return res.send("<script>alert('Gagal! Username man adalah Raja permanen'); window.location='/manage-members';</script>");
+    if (targetUsername.toLowerCase() === 'man') {
+        return res.send("<script>alert('Gagal! Username man adalah Raja permanen'); window.location='/manage-members';</script>");
+    }
     
     await User.findOneAndUpdate({ username: targetUsername.toLowerCase() }, { role: newRole });
     res.redirect('/manage-members?search=' + targetUsername);
@@ -456,7 +461,6 @@ app.post('/update-role', async (req, res) => {
 
 // --- API ROUTES ---
 
-// API 1: Proses AM (Tahap 1 & 2)
 app.post('/api/am-process', async (req, res) => {
     const user = await getValidatedUser(req);
     if (!user) return res.status(401).json({ status: false, message: "Login expired" });
@@ -464,7 +468,6 @@ app.post('/api/am-process', async (req, res) => {
     const { step, email, url } = req.body;
     const today = new Date().toLocaleDateString('id-ID');
 
-    // Cek limit harian untuk 'user' biasa
     if (user.role === 'user' && user.lastAmUse === today) {
         return res.json({ status: false, message: "Limit harian habis! Silakan beli Premium ke atas." });
     }
@@ -482,7 +485,7 @@ app.post('/api/am-process', async (req, res) => {
             const f = await fetch(`${AM_API_URL}/api/am?action=verif&apikey=${AM_API_KEY}&email=${encodeURIComponent(targetEmail)}&url=${encodeURIComponent(url)}`);
             const d = await f.json();
             if (d.status) {
-                user.lastAmUse = today; await user.save(); // Catat penggunaan limit
+                user.lastAmUse = today; await user.save(); 
                 req.session.tempEmail = null;
                 return res.json({ status: true, codeorder: d.codeorder || "SUCCESS" });
             }
@@ -493,7 +496,6 @@ app.post('/api/am-process', async (req, res) => {
     }
 });
 
-// API 2: Create Transaksi Pakasir
 app.post('/api/pay', async (req, res) => {
     const user = await getValidatedUser(req);
     if (!user) return res.status(401).json({ status: false });
@@ -518,7 +520,6 @@ app.post('/api/pay', async (req, res) => {
     } catch (e) { res.json({ status: false }); }
 });
 
-// API 3: Webhook Pakasir (Untuk Eksekusi dari Server Pakasir)
 app.post('/api/webhook', async (req, res) => {
     const { order_id, status, amount } = req.body;
     if (status === 'completed') {
@@ -533,14 +534,13 @@ app.post('/api/webhook', async (req, res) => {
     res.status(200).send("OK");
 });
 
-// API 4: Polling Status (Untuk Frontend)
 app.get('/api/check-status', async (req, res) => {
     const trx = await Transaction.findOne({ order_id: req.query.order_id });
     res.json({ status: trx ? trx.status : 'pending' });
 });
 
 // ==========================================
-// 6. JALANKAN SERVER (LOCAL / VERCEL)
+// 6. JALANKAN SERVER
 // ==========================================
 const PORT = process.env.PORT || 3000;
 app.listen(PORT, () => console.log(`🚀 API Server Berjalan di Port ${PORT}`));
