@@ -1,0 +1,36 @@
+<!DOCTYPE html><html class="dark"><head><title>Kelola Member</title><script src="https://cdn.tailwindcss.com"></script></head>
+<body class="bg-slate-950 text-white min-h-screen p-10">
+    <div class="max-w-2xl mx-auto">
+        <a href="/dashboard" class="text-indigo-400 mb-6 inline-block font-bold">← Kembali ke Dashboard</a>
+        <h1 class="text-3xl font-bold mb-8">⚙️ Manajemen Member</h1>
+        
+        <div class="bg-slate-900 border border-slate-800 p-8 rounded-3xl mb-8">
+            <form action="/manage-members" method="GET" class="flex gap-4">
+                <input type="text" name="search" value="<%= searchQuery %>" placeholder="Cari username..." required class="flex-1 bg-slate-950 border border-slate-800 rounded-xl px-4 py-3 outline-none focus:border-indigo-500">
+                <button type="submit" class="bg-indigo-600 font-bold px-6 py-3 rounded-xl">Cari User</button>
+            </form>
+        </div>
+
+        <% if (searchQuery) { %>
+            <div class="bg-slate-900 border border-slate-800 p-8 rounded-3xl">
+                <% if (targetUser) { %>
+                    <h3 class="text-2xl font-bold mb-2"><%= targetUser.name %> (<span class="text-indigo-400">@<%= targetUser.username %></span>)</h3>
+                    <p class="text-slate-400 mb-6">Role Saat Ini: <span class="uppercase font-bold text-white"><%= targetUser.role %></span></p>
+                    
+                    <form action="/update-role" method="POST" class="space-y-4">
+                        <input type="hidden" name="targetUsername" value="<%= targetUser.username %>">
+                        <select name="newRole" class="w-full bg-slate-950 border border-slate-800 rounded-xl px-4 py-3 outline-none">
+                            <option value="user">User</option>
+                            <option value="premium">Premium</option>
+                            <option value="reseller">Reseller</option>
+                            <% if (user.role === 'raja' || user.role === 'admin') { %><option value="admin">Admin</option><% } %>
+                        </select>
+                        <button type="submit" class="w-full bg-emerald-600 font-bold py-4 rounded-xl mt-4">Ubah Role</button>
+                    </form>
+                <% } else { %>
+                    <p class="text-red-400">User tidak ditemukan.</p>
+                <% } %>
+            </div>
+        <% } %>
+    </div>
+</body></html>

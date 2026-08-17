@@ -1,0 +1,25 @@
+<!DOCTYPE html>
+<html lang="id" class="dark">
+<head>
+    <meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Manzzy ID - Platform AM Creator</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+</head>
+<body class="bg-slate-950 text-white font-sans">
+    <nav class="flex justify-between items-center px-8 py-6 border-b border-slate-800 backdrop-blur-md sticky top-0">
+        <div class="text-xl font-black text-indigo-400">MANZZY<span class="text-white">.ID</span></div>
+        <div>
+            <% if (user) { %>
+                <a href="/dashboard" class="bg-indigo-600 px-5 py-2.5 rounded-xl font-semibold">Dashboard</a>
+            <% } else { %>
+                <a href="/login" class="text-slate-300 px-4 py-2 hover:text-white">Masuk</a>
+                <a href="/register" class="bg-indigo-600 px-5 py-2.5 rounded-xl font-semibold">Daftar</a>
+            <% } %>
+        </div>
+    </nav>
+    <header class="text-center py-32 px-4 max-w-4xl mx-auto">
+        <h1 class="text-5xl md:text-7xl font-extrabold mb-6 bg-gradient-to-r from-indigo-400 to-pink-400 bg-clip-text text-transparent">Automasi Alight Motion Tercepat</h1>
+        <p class="text-slate-400 text-lg mb-10">Platform generator AM otomatis 1-2-3 klik, dilengkapi sistem pembayaran instan.</p>
+        <a href="/login" class="bg-indigo-600 hover:bg-indigo-500 text-white font-bold px-8 py-4 rounded-2xl shadow-xl shadow-indigo-600/30">Mulai Sekarang</a>
+    </header>
+</body></html>

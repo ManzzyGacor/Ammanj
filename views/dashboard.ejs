@@ -1,0 +1,204 @@
+<!DOCTYPE html><html class="dark"><head>
+    <title>Dashboard - Manzzy ID</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+    <style>
+        @keyframes float { 0% { transform: translateY(0px); } 50% { transform: translateY(-8px); } 100% { transform: translateY(0px); } }
+        .animate-float { animation: float 3s ease-in-out infinite; display: inline-block; }
+        .step-active { color: #818cf8; font-weight: bold; }
+        .step-inactive { color: #475569; }
+    </style>
+</head>
+<body class="bg-slate-950 text-white min-h-screen px-6 py-10">
+    <div class="max-w-5xl mx-auto">
+        <!-- HEADER -->
+        <div class="flex flex-col md:flex-row justify-between items-center bg-slate-900 border border-slate-800 p-8 rounded-3xl mb-8">
+            <div>
+                <h1 class="text-3xl font-bold">Halo, <%= user.name %>! <span class="animate-float">👋</span></h1>
+                <p class="text-slate-400 mt-2">Username: <span class="text-indigo-400 font-mono">@<%= user.username %></span></p>
+                <p class="mt-1">Role Anda: <span class="px-3 py-1 rounded-full text-xs font-bold uppercase tracking-wider bg-indigo-500/20 text-indigo-400 border border-indigo-500/30"><%= user.role %> 👑</span></p>
+            </div>
+            <div class="mt-4 md:mt-0 flex gap-4">
+                <% if (['reseller', 'admin', 'raja'].includes(user.role)) { %>
+                    <a href="/manage-members" class="bg-indigo-600 hover:bg-indigo-500 px-6 py-3 rounded-xl font-bold transition">⚙️ Kelola Member</a>
+                <% } %>
+                <a href="/logout" class="bg-red-500/10 text-red-400 px-6 py-3 rounded-xl font-bold border border-red-500/20">Keluar</a>
+            </div>
+        </div>
+
+        <div class="grid grid-cols-1 lg:grid-cols-2 gap-8 mb-10">
+            <!-- FITUR AM GENERATOR (STEPPER 1-2-3) -->
+            <div class="bg-slate-900 border border-slate-800 p-8 rounded-3xl">
+                <h2 class="text-2xl font-bold mb-6 text-indigo-400">🔥 Generate AM Premium</h2>
+                <p class="text-sm text-slate-400 mb-6">Limit: <%= user.role === 'user' ? '1x Sehari' : 'Unlimited' %></p>
+                
+                <div class="flex items-center justify-between mb-8 border-b border-slate-800 pb-4">
+                    <div id="ui-step-1" class="step-active text-center w-1/3">1. Email <span class="animate-float">📧</span></div>
+                    <div id="ui-step-2" class="step-inactive text-center w-1/3 border-l border-r border-slate-800">2. Verif <span class="animate-float">🔗</span></div>
+                    <div id="ui-step-3" class="step-inactive text-center w-1/3">3. Done <span class="animate-float">🎉</span></div>
+                </div>
+
+                <div id="am-form-container">
+                    <input type="email" id="am-email" placeholder="Masukkan akun Gmail..." class="w-full bg-slate-950 border border-slate-800 rounded-xl px-4 py-4 text-white focus:border-indigo-500 mb-4 outline-none">
+                    <button onclick="processAm(1)" id="btn-am" class="w-full bg-indigo-600 hover:bg-indigo-500 font-bold py-4 rounded-xl shadow-lg transition">Kirim Magic Link</button>
+                </div>
+            </div>
+
+            <!-- LEADERBOARD & GLOBAL LOG -->
+            <div class="flex flex-col gap-6">
+                <!-- LEADERBOARD -->
+                <div class="bg-slate-900 border border-slate-800 p-6 rounded-3xl">
+                    <h2 class="text-xl font-bold mb-4">🏆 Top Spender (Leaderboard)</h2>
+                    <div class="space-y-3">
+                        <% leaderboard.forEach((u, index) => { %>
+                            <div class="flex justify-between items-center bg-slate-950 p-3 rounded-xl border border-slate-800">
+                                <div class="font-bold"><%= index + 1 %>. <%= u.username %></div>
+                                <div class="text-emerald-400 font-bold">Rp <%= u.totalSpent.toLocaleString('id-ID') %></div>
+                            </div>
+                        <% }) %>
+                    </div>
+                </div>
+                <!-- GLOBAL LOGS -->
+                <div class="bg-slate-900 border border-slate-800 p-6 rounded-3xl h-full">
+                    <h2 class="text-xl font-bold mb-4">📜 Log Pembelian Global</h2>
+                    <div class="space-y-2 h-40 overflow-y-auto pr-2">
+                        <% globalTrx.forEach(trx => { %>
+                            <div class="text-sm text-slate-400 border-b border-slate-800/50 pb-2">
+                                <span class="text-white font-semibold">@<%= trx.username %></span> baru saja membeli role <span class="text-indigo-400 uppercase font-bold"><%= trx.roleTarget %></span> ✅
+                            </div>
+                        <% }) %>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- SECTION BELI ROLE -->
+        <h2 class="text-3xl font-extrabold mb-6 text-center mt-10">🛒 Beli Role (Permanen)</h2>
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+            <% const roles = [ 
+                { id: 'premium', name: 'Premium', price: 2000, emoji: '🌟', desc: 'Unlimited Verif AM' },
+                { id: 'reseller', name: 'Reseller', price: 4000, emoji: '💼', desc: 'Bisa Jual/Set Role Premium' },
+                { id: 'admin', name: 'Admin', price: 10000, emoji: '👑', desc: 'Bisa Jual Reseller & Premium' }
+            ]; %>
+            <% roles.forEach(r => { %>
+                <div class="bg-slate-900 border border-slate-800 p-8 rounded-3xl text-center hover:border-indigo-500/50 transition">
+                    <div class="text-5xl mb-4 animate-float"><%= r.emoji %></div>
+                    <h3 class="text-2xl font-bold text-white"><%= r.name %></h3>
+                    <p class="text-slate-400 text-sm mt-2 h-10"><%= r.desc %></p>
+                    <p class="text-3xl font-black text-emerald-400 my-6">Rp <%= r.price.toLocaleString('id-ID') %></p>
+                    <button onclick="buyRole('<%= r.id %>', <%= r.price %>)" class="w-full bg-emerald-600 hover:bg-emerald-500 font-bold py-4 rounded-xl shadow-lg shadow-emerald-600/20 transition text-white">
+                        Beli Otomatis
+                    </button>
+                </div>
+            <% }) %>
+        </div>
+    </div>
+
+    <!-- MODAL QRIS -->
+    <div id="qris-modal" class="hidden fixed inset-0 bg-black/80 backdrop-blur-sm z-50 flex items-center justify-center p-4">
+        <div class="bg-slate-900 p-8 rounded-3xl max-w-sm w-full text-center border border-slate-700">
+            <h2 class="text-2xl font-bold mb-2">Scan QRIS</h2>
+            <p class="text-slate-400 text-sm mb-6">Sistem akan otomatis memproses setelah bayar.</p>
+            <div id="qr-image-container" class="bg-white p-4 rounded-2xl mb-6 inline-block mx-auto"></div>
+            <p id="qr-order-id" class="font-mono text-indigo-400 mb-6"></p>
+            <button onclick="document.getElementById('qris-modal').classList.add('hidden')" class="w-full bg-slate-800 hover:bg-slate-700 font-bold py-3 rounded-xl">Tutup</button>
+        </div>
+    </div>
+
+    <script>
+        async function processAm(step) {
+            const btn = document.getElementById('btn-am');
+            const container = document.getElementById('am-form-container');
+            let payload = { step: step };
+            
+            if(step === 1) {
+                const email = document.getElementById('am-email').value;
+                if(!email) return Swal.fire('Error', 'Email tidak boleh kosong', 'error');
+                payload.email = email;
+            } else if(step === 2) {
+                const url = document.getElementById('am-url').value;
+                if(!url) return Swal.fire('Error', 'Link tidak boleh kosong', 'error');
+                payload.url = url;
+            }
+
+            btn.innerText = "Memproses...";
+            btn.disabled = true;
+
+            try {
+                const res = await fetch('/api/am-process', {
+                    method: 'POST',
+                    headers: {'Content-Type': 'application/json'},
+                    body: JSON.stringify(payload)
+                });
+                const data = await res.json();
+
+                if(data.status) {
+                    if(step === 1) {
+                        document.getElementById('ui-step-1').className = 'step-inactive text-center w-1/3';
+                        document.getElementById('ui-step-2').className = 'step-active text-center w-1/3 border-l border-r border-slate-800';
+                        
+                        container.innerHTML = \`
+                            <input type="text" id="am-url" placeholder="Paste link verifikasi disini..." class="w-full bg-slate-950 border border-slate-800 rounded-xl px-4 py-4 text-white focus:border-indigo-500 mb-4 outline-none">
+                            <button onclick="processAm(2)" id="btn-am" class="w-full bg-emerald-600 hover:bg-emerald-500 font-bold py-4 rounded-xl shadow-lg transition">Verifikasi Sekarang</button>
+                        \`;
+                        Swal.fire('Sukses', data.message, 'success');
+                    } else if (step === 2) {
+                        document.getElementById('ui-step-2').className = 'step-inactive text-center w-1/3 border-l border-r border-slate-800';
+                        document.getElementById('ui-step-3').className = 'step-active text-center w-1/3';
+                        
+                        container.innerHTML = \`
+                            <div class="bg-emerald-500/10 border border-emerald-500/20 p-6 rounded-xl text-center">
+                                <div class="text-4xl mb-2 animate-float">🎉</div>
+                                <h3 class="text-xl font-bold text-emerald-400 mb-2">Aktivasi Berhasil!</h3>
+                                <p class="text-slate-300 text-sm">Code Order Anda:</p>
+                                <p class="text-2xl font-mono font-black mt-1 text-white bg-slate-950 p-2 rounded-lg">\${data.codeorder}</p>
+                            </div>
+                            <button onclick="window.location.reload()" class="w-full bg-slate-800 hover:bg-slate-700 font-bold py-4 rounded-xl mt-4">Buat Baru</button>
+                        \`;
+                    }
+                } else {
+                    Swal.fire('Gagal', data.message, 'error');
+                    btn.innerText = step === 1 ? "Kirim Magic Link" : "Verifikasi Sekarang";
+                    btn.disabled = false;
+                }
+            } catch (err) {
+                Swal.fire('Error', 'Server Error', 'error');
+                btn.disabled = false;
+            }
+        }
+
+        async function buyRole(role, amount) {
+            Swal.fire({ title: 'Membuat Tagihan...', allowOutsideClick: false, didOpen: () => { Swal.showLoading() } });
+            
+            const res = await fetch('/api/pay', {
+                method: 'POST',
+                headers: {'Content-Type': 'application/json'},
+                body: JSON.stringify({role, amount})
+            });
+            const data = await res.json();
+            Swal.close();
+
+            if(data.status) {
+                document.getElementById('qr-order-id').innerText = "Order ID: " + data.order_id;
+                document.getElementById('qr-image-container').innerHTML = \`<img src="https://api.qrserver.com/v1/create-qr-code/?size=250x250&data=\${encodeURIComponent(data.qr)}" alt="QRIS">\`;
+                document.getElementById('qris-modal').classList.remove('hidden');
+                
+                checkPaymentStatus(data.order_id);
+            } else {
+                Swal.fire('Gagal', 'Sistem Pembayaran Sedang Gangguan', 'error');
+            }
+        }
+
+        function checkPaymentStatus(order_id) {
+            const check = setInterval(async () => {
+                const res = await fetch('/api/check-status?order_id=' + order_id);
+                const data = await res.json();
+                if(data.status === 'completed') {
+                    clearInterval(check);
+                    Swal.fire('Pembayaran Berhasil!', 'Role otomatis diupdate. Halaman akan dimuat ulang.', 'success')
+                    .then(() => window.location.reload());
+                }
+            }, 5000); 
+        }
+    </script>
+</body></html>
