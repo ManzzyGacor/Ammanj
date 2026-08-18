@@ -1,14 +1,54 @@
-<!DOCTYPE html><html class="dark"><head><script src="https://cdn.tailwindcss.com"></script></head>
-<body class="bg-slate-950 text-white flex items-center justify-center min-h-screen">
-    <div class="bg-slate-900 p-8 rounded-3xl shadow-2xl w-full max-w-md border border-slate-800">
-        <h2 class="text-2xl font-bold text-center text-indigo-400 mb-6">Daftar Akun Baru</h2>
-        <% if (error) { %><div class="bg-red-500/10 text-red-400 p-3 rounded-xl mb-4 text-center"><%= error %></div><% } %>
-        <form action="/register" method="POST" class="space-y-4">
-            <input type="text" name="name" placeholder="Nama Lengkap" required class="w-full bg-slate-950 border border-slate-800 rounded-xl px-4 py-3 text-white">
-            <input type="text" name="username" placeholder="Username" required class="w-full bg-slate-950 border border-slate-800 rounded-xl px-4 py-3 text-white">
-            <input type="password" name="password" placeholder="Password" required class="w-full bg-slate-950 border border-slate-800 rounded-xl px-4 py-3 text-white">
-            <button type="submit" class="w-full bg-indigo-600 font-bold py-3.5 rounded-xl mt-2">Daftar</button>
+<!DOCTYPE html>
+<html lang="id" class="dark">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Daftar - Manzzy ID</title>
+    <link rel="preconnect" href="https://cdn.tailwindcss.com">
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>tailwind.config = { darkMode: 'class' }</script>
+    <style>
+        .glass-card { background: rgba(15, 23, 42, 0.6); backdrop-filter: blur(16px); border: 1px solid rgba(51, 65, 85, 0.5); }
+    </style>
+</head>
+<body style="background-color: #020617; color: white;" class="bg-slate-950 text-white min-h-screen flex items-center justify-center p-4 relative overflow-hidden selection:bg-indigo-500">
+    
+    <!-- Glow Background -->
+    <div class="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[600px] h-[600px] bg-purple-600/20 rounded-full blur-[120px] -z-10 pointer-events-none"></div>
+
+    <div class="glass-card p-10 rounded-3xl shadow-[0_0_40px_rgba(0,0,0,0.5)] w-full max-w-md relative z-10 transform transition-all duration-500 hover:border-purple-500/30">
+        <div class="text-center mb-8">
+            <h2 class="text-3xl font-black mb-2 bg-gradient-to-r from-purple-400 to-pink-400 bg-clip-text text-transparent">Buat Akun</h2>
+            <p class="text-slate-400 text-sm">Bergabunglah dengan platform AM Creator</p>
+        </div>
+
+        <% if (error) { %>
+            <div class="bg-red-500/10 border border-red-500/20 text-red-400 p-4 rounded-xl mb-6 text-center text-sm font-semibold shadow-[0_0_10px_rgba(239,68,68,0.2)]">
+                <%= error %>
+            </div>
+        <% } %>
+
+        <form action="/register" method="POST" class="space-y-5">
+            <div>
+                <label class="block text-xs font-bold text-slate-400 uppercase tracking-wider mb-2">Nama Lengkap</label>
+                <input type="text" name="name" required class="w-full bg-slate-900/50 border border-slate-700 rounded-xl px-5 py-3.5 text-white focus:outline-none focus:border-purple-500 focus:ring-2 focus:ring-purple-500/20 transition duration-300">
+            </div>
+            <div>
+                <label class="block text-xs font-bold text-slate-400 uppercase tracking-wider mb-2">Username</label>
+                <input type="text" name="username" required class="w-full bg-slate-900/50 border border-slate-700 rounded-xl px-5 py-3.5 text-white focus:outline-none focus:border-purple-500 focus:ring-2 focus:ring-purple-500/20 transition duration-300">
+            </div>
+            <div>
+                <label class="block text-xs font-bold text-slate-400 uppercase tracking-wider mb-2">Password</label>
+                <input type="password" name="password" required class="w-full bg-slate-900/50 border border-slate-700 rounded-xl px-5 py-3.5 text-white focus:outline-none focus:border-purple-500 focus:ring-2 focus:ring-purple-500/20 transition duration-300">
+            </div>
+            <button type="submit" class="w-full bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-500 hover:to-pink-500 text-white font-bold py-4 rounded-xl shadow-[0_0_20px_rgba(168,85,247,0.4)] hover:shadow-[0_0_30px_rgba(168,85,247,0.6)] transition transform hover:-translate-y-0.5 mt-4">
+                Daftar Sekarang
+            </button>
         </form>
-        <p class="text-center mt-6 text-sm">Sudah punya akun? <a href="/login" class="text-indigo-400">Masuk</a></p>
+
+        <p class="text-center mt-8 text-sm text-slate-400">
+            Sudah punya akun? <a href="/login" class="text-purple-400 font-bold hover:text-purple-300 transition">Masuk di sini</a>
+        </p>
     </div>
-</body></html>
+</body>
+</html>

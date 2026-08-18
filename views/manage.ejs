@@ -1,36 +1,73 @@
-<!DOCTYPE html><html class="dark"><head><title>Kelola Member</title><script src="https://cdn.tailwindcss.com"></script></head>
-<body class="bg-slate-950 text-white min-h-screen p-10">
-    <div class="max-w-2xl mx-auto">
-        <a href="/dashboard" class="text-indigo-400 mb-6 inline-block font-bold">← Kembali ke Dashboard</a>
-        <h1 class="text-3xl font-bold mb-8">⚙️ Manajemen Member</h1>
+<!DOCTYPE html>
+<html lang="id" class="dark">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Kelola Member - Manzzy ID</title>
+    <link rel="preconnect" href="https://cdn.tailwindcss.com">
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>tailwind.config = { darkMode: 'class' }</script>
+    <style>
+        .glass-card { background: rgba(15, 23, 42, 0.6); backdrop-filter: blur(16px); border: 1px solid rgba(51, 65, 85, 0.5); }
+    </style>
+</head>
+<body style="background-color: #020617; color: white;" class="bg-slate-950 text-white min-h-screen p-6 md:p-10 relative overflow-x-hidden selection:bg-indigo-500">
+    
+    <!-- Glow Background -->
+    <div class="absolute top-0 left-1/2 -translate-x-1/2 w-[600px] h-[400px] bg-indigo-600/10 rounded-full blur-[150px] -z-10 pointer-events-none"></div>
+
+    <div class="max-w-3xl mx-auto">
+        <a href="/dashboard" class="inline-flex items-center gap-2 text-indigo-400 hover:text-indigo-300 font-bold mb-8 transition group">
+            <span class="transform group-hover:-translate-x-1 transition">←</span> Kembali ke Dashboard
+        </a>
         
-        <div class="bg-slate-900 border border-slate-800 p-8 rounded-3xl mb-8">
-            <form action="/manage-members" method="GET" class="flex gap-4">
-                <input type="text" name="search" value="<%= searchQuery %>" placeholder="Cari username..." required class="flex-1 bg-slate-950 border border-slate-800 rounded-xl px-4 py-3 outline-none focus:border-indigo-500">
-                <button type="submit" class="bg-indigo-600 font-bold px-6 py-3 rounded-xl">Cari User</button>
+        <div class="mb-10">
+            <h1 class="text-4xl font-black bg-gradient-to-r from-white to-slate-400 bg-clip-text text-transparent mb-2">⚙️ Manajemen Member</h1>
+            <p class="text-slate-400">Cari username member lalu sesuaikan rolenya.</p>
+        </div>
+        
+        <div class="glass-card p-6 md:p-8 rounded-3xl mb-8 shadow-[0_0_30px_rgba(0,0,0,0.3)] hover:border-indigo-500/30 transition duration-300">
+            <form action="/manage-members" method="GET" class="flex flex-col sm:flex-row gap-4">
+                <input type="text" name="search" value="<%= searchQuery %>" placeholder="Ketik username target (Contoh: andi123)" required class="flex-1 bg-slate-900/80 border border-slate-700 rounded-xl px-5 py-4 outline-none focus:border-indigo-500 focus:ring-2 focus:ring-indigo-500/20 transition">
+                <button type="submit" class="bg-indigo-600 hover:bg-indigo-500 text-white font-bold px-8 py-4 rounded-xl shadow-[0_0_15px_rgba(99,102,241,0.4)] transition transform hover:-translate-y-0.5">Cari User</button>
             </form>
         </div>
 
         <% if (searchQuery) { %>
-            <div class="bg-slate-900 border border-slate-800 p-8 rounded-3xl">
+            <div class="glass-card p-8 rounded-3xl shadow-[0_0_30px_rgba(0,0,0,0.3)] animate-[fadeIn_0.5s_ease-out]">
                 <% if (targetUser) { %>
-                    <h3 class="text-2xl font-bold mb-2"><%= targetUser.name %> (<span class="text-indigo-400">@<%= targetUser.username %></span>)</h3>
-                    <p class="text-slate-400 mb-6">Role Saat Ini: <span class="uppercase font-bold text-white"><%= targetUser.role %></span></p>
+                    <div class="border-b border-slate-800/60 pb-6 mb-6">
+                        <p class="text-xs font-bold text-slate-500 uppercase tracking-widest mb-2">Hasil Pencarian</p>
+                        <h3 class="text-3xl font-black mb-1"><%= targetUser.name %> (<span class="text-indigo-400">@<%= targetUser.username %></span>)</h3>
+                        <p class="text-slate-400">Role Saat Ini: <span class="px-3 py-1 bg-slate-800 rounded-lg uppercase font-bold text-white text-xs ml-2 border border-slate-700"><%= targetUser.role %></span></p>
+                    </div>
                     
-                    <form action="/update-role" method="POST" class="space-y-4">
+                    <form action="/update-role" method="POST" class="space-y-5">
                         <input type="hidden" name="targetUsername" value="<%= targetUser.username %>">
-                        <select name="newRole" class="w-full bg-slate-950 border border-slate-800 rounded-xl px-4 py-3 outline-none">
-                            <option value="user">User</option>
-                            <option value="premium">Premium</option>
-                            <option value="reseller">Reseller</option>
-                            <% if (user.role === 'raja' || user.role === 'admin') { %><option value="admin">Admin</option><% } %>
-                        </select>
-                        <button type="submit" class="w-full bg-emerald-600 font-bold py-4 rounded-xl mt-4">Ubah Role</button>
+                        <div>
+                            <label class="block text-xs font-bold text-slate-400 uppercase tracking-wider mb-2">Pilih Role Baru</label>
+                            <select name="newRole" class="w-full bg-slate-900/80 border border-slate-700 rounded-xl px-5 py-4 outline-none focus:border-indigo-500 cursor-pointer appearance-none">
+                                <option value="user" <%= targetUser.role === 'user' ? 'selected' : '' %>>User (Biasa)</option>
+                                <option value="premium" <%= targetUser.role === 'premium' ? 'selected' : '' %>>Premium</option>
+                                <option value="reseller" <%= targetUser.role === 'reseller' ? 'selected' : '' %>>Reseller</option>
+                                <% if (user.role === 'raja' || user.role === 'admin') { %>
+                                    <option value="admin" <%= targetUser.role === 'admin' ? 'selected' : '' %>>Admin</option>
+                                <% } %>
+                            </select>
+                        </div>
+                        <button type="submit" class="w-full bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-500 hover:to-teal-500 text-white font-bold py-4 rounded-xl shadow-[0_0_20px_rgba(16,185,129,0.3)] transition transform hover:-translate-y-0.5 mt-2">
+                            Simpan Perubahan Role
+                        </button>
                     </form>
                 <% } else { %>
-                    <p class="text-red-400">User tidak ditemukan.</p>
+                    <div class="text-center py-8">
+                        <div class="text-4xl mb-4">🔍</div>
+                        <p class="text-red-400 font-semibold text-lg">User dengan username "<span class="text-white"><%= searchQuery %></span>" tidak ditemukan.</p>
+                        <p class="text-slate-500 text-sm mt-2">Pastikan penulisan username sudah benar.</p>
+                    </div>
                 <% } %>
             </div>
         <% } %>
     </div>
-</body></html>
+</body>
+</html>
