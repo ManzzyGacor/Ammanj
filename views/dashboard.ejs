@@ -105,7 +105,7 @@
         </div>
     </div>
 
-    <script>
+<script>
         async function processAm(step) {
             const btn = document.getElementById('btn-am');
             const container = document.getElementById('am-form-container');
@@ -137,24 +137,24 @@
                         document.getElementById('ui-step-1').className = 'step-inactive text-center w-1/3';
                         document.getElementById('ui-step-2').className = 'step-active text-center w-1/3 border-l border-r border-slate-800';
                         
-                        container.innerHTML = \`
+                        container.innerHTML = `
                             <input type="text" id="am-url" placeholder="Paste link verifikasi disini..." class="w-full bg-slate-950 border border-slate-800 rounded-xl px-4 py-4 text-white focus:border-indigo-500 mb-4 outline-none">
                             <button onclick="processAm(2)" id="btn-am" class="w-full bg-emerald-600 hover:bg-emerald-500 font-bold py-4 rounded-xl shadow-lg transition">Verifikasi Sekarang</button>
-                        \`;
+                        `;
                         Swal.fire('Sukses', data.message, 'success');
                     } else if (step === 2) {
                         document.getElementById('ui-step-2').className = 'step-inactive text-center w-1/3 border-l border-r border-slate-800';
                         document.getElementById('ui-step-3').className = 'step-active text-center w-1/3';
                         
-                        container.innerHTML = \`
+                        container.innerHTML = `
                             <div class="bg-emerald-500/10 border border-emerald-500/20 p-6 rounded-xl text-center">
                                 <div class="text-4xl mb-2 animate-float">🎉</div>
                                 <h3 class="text-xl font-bold text-emerald-400 mb-2">Aktivasi Berhasil!</h3>
                                 <p class="text-slate-300 text-sm">Code Order Anda:</p>
-                                <p class="text-2xl font-mono font-black mt-1 text-white bg-slate-950 p-2 rounded-lg">\${data.codeorder}</p>
+                                <p class="text-2xl font-mono font-black mt-1 text-white bg-slate-950 p-2 rounded-lg">${data.codeorder}</p>
                             </div>
                             <button onclick="window.location.reload()" class="w-full bg-slate-800 hover:bg-slate-700 font-bold py-4 rounded-xl mt-4">Buat Baru</button>
-                        \`;
+                        `;
                     }
                 } else {
                     Swal.fire('Gagal', data.message, 'error');
@@ -180,7 +180,7 @@
 
             if(data.status) {
                 document.getElementById('qr-order-id').innerText = "Order ID: " + data.order_id;
-                document.getElementById('qr-image-container').innerHTML = \`<img src="https://api.qrserver.com/v1/create-qr-code/?size=250x250&data=\${encodeURIComponent(data.qr)}" alt="QRIS">\`;
+                document.getElementById('qr-image-container').innerHTML = `<img src="https://api.qrserver.com/v1/create-qr-code/?size=250x250&data=${encodeURIComponent(data.qr)}" alt="QRIS">`;
                 document.getElementById('qris-modal').classList.remove('hidden');
                 
                 checkPaymentStatus(data.order_id);
