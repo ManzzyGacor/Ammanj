@@ -4,7 +4,7 @@ const session = require('express-session');
 const bcrypt = require('bcryptjs');
 const fetch = require('node-fetch');
 const path = require('path');
-const MongoStore = require('connect-mongo'); // TAMBAHKAN BARIS INI
+const MongoStore = require('connect-mongo');
 
 const app = express();
 
@@ -19,7 +19,7 @@ const AM_API_URL = "https://restapidhan.vercel.app";
 const AM_API_KEY = "freeapikeydhan26";
 
 // ==========================================
-// 2. DATABASE MONGODB (SERVERLESS OPTIMIZED)
+// 2. DATABASE MONGODB (ANTI-CRASH VERCEL)
 // ==========================================
 let isConnected = false;
 const connectDB = async () => {
@@ -41,7 +41,6 @@ const userSchema = new mongoose.Schema({
     lastAmUse: { type: String, default: '' },
     totalSpent: { type: Number, default: 0 } 
 });
-const User = mongoose.model('User', userSchema);
 
 const trxSchema = new mongoose.Schema({
     order_id: String,
@@ -51,30 +50,30 @@ const trxSchema = new mongoose.Schema({
     status: { type: String, default: 'pending' },
     completed_at: Date
 });
-const Transaction = mongoose.model('Transaction', trxSchema);
 
-// ==========================================
-// 3. MIDDLEWARE & SETUP FOLDER VIEWS
-// ==========================================
+// ✅ SOLUSI OVERWRITE ERROR: Cek dulu apakah model sudah ada di Vercel Cache
+const User = mongoose.models.User || mongoose.model('User', userSchema);
+const Transaction = mongoose.models.Transaction || mongoose.model('Transaction', trxSchema);
+
 // ==========================================
 // 3. MIDDLEWARE & SETUP FOLDER VIEWS
 // ==========================================
 app.use(express.urlencoded({ extended: true }));
 app.use(express.json());
 
-// UPDATE BAGIAN INI: Simpan session di MongoDB agar tidak hilang di Vercel
+// ✅ SOLUSI MEMORYSTORE WARNING: Simpan session ke MongoDB Atlas
 app.use(session({
     secret: 'ManzzyIDSecretKey2026',
     resave: false,
     saveUninitialized: false,
     store: MongoStore.create({
-        mongoUrl: MONGO_URI, // Menggunakan link MongoDB yang sudah ada di atas
-        ttl: 24 * 60 * 60 // Masa berlaku session 1 hari (dalam detik)
+        mongoUrl: MONGO_URI,
+        ttl: 24 * 60 * 60 // 1 Hari
     }),
     cookie: { maxAge: 24 * 60 * 60 * 1000 }
 }));
 
-// Wajib untuk Vercel agar tahu posisi folder views
+// Setup Vercel Views Path
 app.set('view engine', 'ejs');
 app.set('views', path.join(process.cwd(), 'views'));
 
@@ -89,6 +88,7 @@ app.use(async (req, res, next) => {
 async function getValidatedUser(req) {
     if (!req.session.userId) return null;
     let u = await User.findById(req.session.userId);
+    // Aturan Raja: Username 'man' otomatis Raja
     if (u && u.username.toLowerCase() === 'man' && u.role !== 'raja') {
         u.role = 'raja'; await u.save();
     }
@@ -241,8 +241,6 @@ app.get('/api/check-status', async (req, res) => {
 });
 
 // ==========================================
-// 5. JALANKAN SERVER
+// 5. EKSPOR UNTUK VERCEL
 // ==========================================
-const PORT = process.env.PORT || 3000;
-app.listen(PORT, () => console.log(`🚀 API Server Berjalan di Port ${PORT}`));
 module.exports = app;
