@@ -4,6 +4,7 @@ const session = require('express-session');
 const bcrypt = require('bcryptjs');
 const fetch = require('node-fetch');
 const path = require('path');
+const MongoStore = require('connect-mongo'); // TAMBAHKAN BARIS INI
 
 const app = express();
 
@@ -55,12 +56,21 @@ const Transaction = mongoose.model('Transaction', trxSchema);
 // ==========================================
 // 3. MIDDLEWARE & SETUP FOLDER VIEWS
 // ==========================================
+// ==========================================
+// 3. MIDDLEWARE & SETUP FOLDER VIEWS
+// ==========================================
 app.use(express.urlencoded({ extended: true }));
 app.use(express.json());
+
+// UPDATE BAGIAN INI: Simpan session di MongoDB agar tidak hilang di Vercel
 app.use(session({
     secret: 'ManzzyIDSecretKey2026',
     resave: false,
     saveUninitialized: false,
+    store: MongoStore.create({
+        mongoUrl: MONGO_URI, // Menggunakan link MongoDB yang sudah ada di atas
+        ttl: 24 * 60 * 60 // Masa berlaku session 1 hari (dalam detik)
+    }),
     cookie: { maxAge: 24 * 60 * 60 * 1000 }
 }));
 
